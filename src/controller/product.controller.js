@@ -70,3 +70,22 @@ export async function updateProduct(req, res) {
         data: updatedProduct,
     });
 }
+
+export async function deleteProduct(req, res) {
+    const { id } = req.params;
+
+    const targetProduct = await Product.findById(id);
+
+    if (!targetProduct) {
+        return res.status(404).json({
+            status: 404,
+            message: "product mavjud emas",
+        });
+    }
+
+    await Product.deleteOne({ _id: id });
+    res.status(200).json({
+        status: 200,
+        message: "product deleted",
+    });
+}
