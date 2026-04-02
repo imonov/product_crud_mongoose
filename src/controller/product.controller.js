@@ -1,13 +1,70 @@
 import { Product } from "../model/product.model.js";
 
 export async function getAllProduct(req, res) {
-    const products = await Product.find();
+    const {
+        search,
+        sortedFilter = "-createdAt",
+        page = 1,
+        limit = 5,
+        minPrice,
+        maxPrice,
+        minRating,
+        maxRating,
+    } = req.query;
+
+    const filter = {};
+
+    if (search) {
+        filter.$or = [
+            {
+                name: {
+                    $regex: search,
+                    $options: "i",
+                },
+            },
+            {
+                description: {
+                    $regex: search,
+                    $options: "i",
+                },
+            },
+        ];
+    }
+
+    const products = await Product.find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort(sortedFilter);
 
     if (products.length === 0) {
         return res.status(200).json({
             status: 200,
             message: "Data not found",
         });
+    }
+
+    if (minPrice) {
+        filter.price = {
+            $gte: minPrice,
+        };
+    }
+
+    if (maxPrice) {
+        filter.price = {
+            $lte: maxPrice,
+        };
+    }
+
+    if (minRating) {
+        filter.rating = {
+            $gte: minRating,
+        };
+    }
+
+    if (maxRating) {
+        filter.rating = {
+            $lte: maxRating,
+        };
     }
 
     res.status(200).json({
